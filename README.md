@@ -42,7 +42,7 @@ task = client.ScanFile(file)
 while not task.isFinished(client):
     time.sleep(30)
 ```
-### Получение рерузльтирующего объекта (любой объек базового класса Response) в виде JSON
+### Получение рерузльтирующего объекта (любой объект базового класса Response) в виде JSON
 ```
 client.ScanFile(file, doAsync=doAsync).toJSON()
 ```
