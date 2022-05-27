@@ -270,14 +270,14 @@ class Statistics(object):
 
     
     def UsageInfo_verdicts(self):
-        verdicts = [i.verdict if i != None else i for i in [item.result for sublist in [fileinfo.scans for fileinfo in self.file_stats] for item in sublist]]
+        verdicts = [i for i in [item.result for sublist in [fileinfo.scans for fileinfo in self.file_stats] for item in sublist]]
         data = []
         if None in verdicts:
             data.append(["N\A", len([v for v in verdicts if v == None])])
             verdicts = list(filter((None).__ne__, verdicts))
         
         grouped = self.__GroupVerdict(verdicts, "verdict")
-        (data.append([ k, len(g) ]) for k, g in grouped.items())
+        (data.extend([ k, len(g) ] for k, g in grouped.items()))
         headers = ["Verdict", "Count"]
         return {"headers": headers, "data": data}
     #endregion
