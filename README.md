@@ -64,7 +64,7 @@ checkHealth                 1           0.022017
 ```
 
 ## UsageInfo_summary
-Формирует количественную статистику по проанализированным (есть результат анализа) файлам, их расширениям, mime-типу
+Формирует количественную статистику по отправленным на анализ файлам, их расширениям, mime-типу
 ```
 client.PrintStatistics("UsageInfo_summary")
 
@@ -76,7 +76,7 @@ mime count        2
 ```
 
 ## UsageInfo_ext
-Формирует статистику по проанализированным расширениям файлов
+Формирует статистику по файлам отправленным на анализ, группированным по расширению
 ```
 client.PrintStatistics("UsageInfo_ext")
 
@@ -87,7 +87,7 @@ exe          5      915028          0.0368164                0
 ```
 
 ## UsageInfo_mime
-Формирует статистику по проанализированным mime-типам файлов
+Формирует статистику по файлам отправленным на анализ, группированным по mime-типу
 ```
 client.PrintStatistics("UsageInfo_mime")
 
@@ -98,7 +98,7 @@ application/x-msdownload        5      915028          0.0368164                
 ```
 
 ## UsageInfo_files
-Статистика для каждого проанализированного файла
+Статистика для каждого отправленного на анализ файла
 ```
 client.PrintStatistics("UsageInfo_files")
 
@@ -114,7 +114,7 @@ D:\0\test1\test_pres.pptx       zip    application/zip             1951532      
 D:\0\test1\test_table.xlsx      zip    application/zip               16020       0.032694            0             1  CLEAN
 ```
 ## UsageInfo_verdicts
-Статистика по полученным вердиктам при анализе
+Статистика по полученным вердиктам при анализе. Если файл еще не проэмулирован, то вердикт будет равен N\A
 ```
 client.PrintStatistics("UsageInfo_verdicts")
 
