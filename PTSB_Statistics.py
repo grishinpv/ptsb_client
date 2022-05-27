@@ -42,9 +42,10 @@ class FileStatInfo(object):
             self.file_scantime = new_scantime
 
     def Update_scans(self, scan_id, result):
-        if len(self.scans) == 0:
-            self.scans.append(scan_id)
-        scanObj = next((obj for obj in self.scans if obj == scan_id), None)
+        #if len(self.scans) == 0:
+        #    self.scans.append(ScanResult(scan_id, result))
+        #    return
+        scanObj = next((obj for obj in self.scans if obj.scan_id == scan_id), None)
         if scanObj.result == None:
             scanObj.result = result
         
@@ -106,6 +107,10 @@ class Statistics(object):
             if fileObj == None:
                 raise "File with id '{}' was not loaded with this client api".format()
 
+            #scan_id must be the last to set!
+            if not skipAPIobjUpdate:
+                fileObj.scans.append(ScanResult(response.scan_id, None))
+
             if response.isFinished():
                 if response.result:
                     fileObj.Update_scans(response.scan_id, response.result)
@@ -115,9 +120,7 @@ class Statistics(object):
                     #    if not response.scan_id in fileObj.scan_ids:
                     #        fileObj.results.append(response.result)
 
-            #scan_id must be the last to set!
-            if not skipAPIobjUpdate:
-                fileObj.scans.append(ScanResult(response.scan_id, None))
+            
 
 
         elif API.name == "checkTask":
@@ -267,7 +270,6 @@ class Statistics(object):
 
     def UsageInfo_files(self):
         headers = ["File path", "Ext", "Mime", "Size kB", "Upload time", "Scan time", "Scan count", "Last verdict"]
-        #return {"headers": headers, "data": [[item.file_path, item.file_ext, item.file_mime, item.file_size, item.file_uploadtime, item.file_scantime, len(item.scan_ids), item.results[-1].verdict ] for item in self.file_stats]}
         return {"headers": headers, "data": [[item.file_path, item.file_ext, item.file_mime, item.file_size, item.file_uploadtime, item.file_scantime, len(item.scans), [res.result for res in item.scans][-1].verdict if [res.result for res in item.scans][-1] != None else "N\A" ] for item in self.file_stats]}
 
     
