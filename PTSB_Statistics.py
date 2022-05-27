@@ -44,7 +44,7 @@ class FileStatInfo(object):
     def Update_scans(self, scan_id, result):
         if len(self.scans) == 0:
             self.scans.append(scan_id)
-        scanObj = next((obj for obj in self.scans if obj.scan_id == scan_id), None)
+        scanObj = next((obj for obj in self.scans if obj == scan_id), None)
         if scanObj.result == None:
             scanObj.result = result
         
