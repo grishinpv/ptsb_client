@@ -27,7 +27,7 @@ from PTSB_API import *
 client = PTSBApi(api_key, ip)
 
 # работа через прокси
-client = PTSBApi(api_key, ip)
+client = PTSBApi(api_key, ip, proxy_srv, proxy_port)
 
 # работа через прокси c аутентификацией
 client = PTSBApi(api_key, ip, proxy_srv, proxy_port, proxy_user, proxy_pwd)
@@ -35,16 +35,16 @@ client = PTSBApi(api_key, ip, proxy_srv, proxy_port, proxy_user, proxy_pwd)
 ### Простое сканирование в PT SB (загрузка + сканирование в одно действие)
 ```
 # синхронная проверка
-result = client.ScanFile(file, doAsync=False)
+result = client.ScanFile(file_path, doAsync=False)
 
 # асинхронная проверка
-task = client.ScanFile(file)
+task = client.ScanFile(file_path)
 while not task.isFinished(client):
     time.sleep(30)
 ```
 ### Получение рерузльтирующего объекта (любой объект базового класса Response) в виде JSON
 ```
-client.ScanFile(file, doAsync=doAsync).toJSON()
+client.ScanFile(file_path, doAsync=doAsync).toJSON()
 ```
 
 # Statistics
@@ -129,14 +129,14 @@ CLEAN            8
 *  ```client.CreateScanTaskSimple```
 *  ```client.CreateScanTaskSimpleAsynс```
 
-## Асинхронная проверка [пример](Example/async_v1.py)
+## Асинхронная проверка [:link:](Example/async_v1.py)
 При создании задачи на анализ файла через ```сlient.CreateScanTask``` анализ файла выполняется асинхронно, т.е. сразу возвращается объект класса ```ResponseCreateScanTask()```.
 Запросить результат выполнения задачи можно одним из вариантов:
 * вызвать ```client.CheckTask(scan_id):```, где ```scan_id``` является атрибутом ранее полученного ```ResponseCreateScanTask()```
 * вызвать метод ранее полученного объекта класса для таска ```ResponseCreateScanTask.isFinished()```
 
-## Синхронная проверка [пример](Example/sync_v1.py)
+## Синхронная проверка [:link:](Example/sync_v1.py)
 При создании задачи на анализ файла через ```сlient.CreateScanTask```, API ожидает полного завершения анализа и в качестве ответа возвращает полный результат анализа
 
-## Упрощенная проверка [пример](Example/simple.py)
+## Упрощенная проверка [:link:](Example/simple.py)
 Клиент реализует упрощенный метод сканирования (объединяющий ```client.UploadScanFile()``` и ```сlient.CreateScanTask()```) в одном вызове ```client.ScanFile(file, doAsync)```
