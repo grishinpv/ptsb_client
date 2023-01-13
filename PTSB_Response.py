@@ -88,5 +88,3 @@ class ResponseCheckHealth(Response):
     
     def isOnline(self):
         return (True if self.status.lower() == "ok" else False)
-
-    
