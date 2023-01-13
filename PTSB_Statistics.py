@@ -35,6 +35,7 @@ class FileStatInfo(object):
             return "Null", "Null"
         return kind.extension, kind.mime
 
+
     def __updateScantime(self, new_scantime):
         if len(self.scans) > 1:
             self.file_scantime = (((self.file_scantime * (len(self.scans) - 1)) + new_scantime) / len(self.scans))

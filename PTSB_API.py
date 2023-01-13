@@ -1,5 +1,5 @@
 __author__ = "Pavel Grishin"
-__version__ = "0.0.0.1"
+__version__ = "0.0.0.2"
 
 
 import re, socket, os
@@ -18,7 +18,9 @@ class PTSBApi(object):
     BASE_API_PATH = "api/v1"
 
     def __init__(self, api_key, sandbox_ip, proxy_srv='', proxy_port='', proxy_user=None, proxy_pwd=None, disable_cert_checking=True):
-        if not ((type(api_key) == str) and (re.match(r'^[0-9a-zA-Z]{24}_[0-9a-zA-Z]{18}_[0-9a-zA-Z]{14}_[0-9a-zA-Z]{5}_[0-9a-zA-Z]{14}-[0-9a-zA-Z]{6}$', api_key))):
+        if not ((type(api_key) == str) and 
+            (re.match(r'^[0-9a-zA-Z]{24}_[0-9a-zA-Z]{18}_[0-9a-zA-Z]{14}_[0-9a-zA-Z]{5}_[0-9a-zA-Z]{14}-[0-9a-zA-Z]{6}$', api_key) or
+            re.match(r'^[0-9a-zA-Z]{31}[-|_][0-9a-zA-Z]{24}[-|_][0-9a-zA-Z]{16}[-|_][0-9a-zA-Z]{2}[-|_][0-9a-zA-Z]{9}$', api_key))):
             raise ValueError("RequestFactory __init__ parameter 'api_key' must be a STRING with valid API key format")
         if not ((type(sandbox_ip) == str) and ((self.__isValidIP(sandbox_ip)) or (self.__isValidHostname(
             sandbox_ip)))):
@@ -84,19 +86,23 @@ class PTSBApi(object):
         r = getattr(requests, http_method)(url = url, verify=False, headers=headers, proxies=self.proxies, data = body)
         
         if r.status_code == 400:
-            raise BadAPIRequest("Errors:\n{}".format(
+            raise BadAPIRequest("URL:{0}\nErrors:\n{1}".format(
+                url,
                 "\n".join([str(APIError(dict)) for dict in json.loads(r.text)["errors"]])
             ))
         elif r.status_code == 401:
-            raise BadAPIKey("Errors:\n{}".format(
+            raise BadAPIKey("URL:{0}\nErrors:\n{1}".format(
+                url,
                 "\n".join([str(APIError(dict)) for dict in json.loads(r.text)["errors"]])
             ))
         elif r.status_code == 404:
-            raise ObjectNotFound("Errors:\n{}".format(
+            raise ObjectNotFound("URL:{0}\nErrors:\n{1}".format(
+                url,
                 "\n".join([str(APIError(dict)) for dict in json.loads(r.text)["errors"]])
             ))
         elif r.status_code == 405:
-            raise BadAPIMethod("Errors:\n{}".format(
+            raise BadAPIMethod("URL:{0}\nErrors:\n{1}".format(
+                url,
                 "\n".join([str(APIError(dict)) for dict in json.loads(r.text)["errors"]])
             ))
         elif r.status_code >= 500:
@@ -112,9 +118,11 @@ class PTSBApi(object):
         #return original result
         return result
 
+
     def __asyncStatisticsCorrector(self, apiname, result, paramDict = None):
         API = getattr(self.statistics.api_usage, apiname)
         self.statistics.Update(API, result, paramDict, True)
+
 
     def GetImages(self):
         apiname = 'getImages'
@@ -180,6 +188,15 @@ class PTSBApi(object):
         
         return res
 
+
+    def GetReport(self, scan_id):
+        apiname = 'report'
+        body = CheckTaskBody(scan_id)
+        res = self.__withStatisticsWrapper(apiname, ResponseCheckTask(self.__send_request(apiname, body=body.toJSON())))
+        
+        return res
+
+
     def ScanFile(self, file_path, doAsync = True, image_id = None):
         if image_id == None:
             image_id = self.images.images[0].image_id
@@ -198,6 +215,7 @@ class PTSBApi(object):
         if addEmptyString:
             print()
 
+
     def PrintStatisticsAll(self):
         self.PrintStatistics("UsageInfo_api")
         self.PrintStatistics("UsageInfo_summary")
@@ -206,5 +224,6 @@ class PTSBApi(object):
         self.PrintStatistics("UsageInfo_files")
         self.PrintStatistics("UsageInfo_verdicts")
 
+
     def __str__(self):
-        return str(self.statistics)
+        return self.PrintStatisticsAll()

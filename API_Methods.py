@@ -8,6 +8,7 @@ SUPPORTED_API_METHODS = {
     'downloadArtifact': "storage",
     'getImages': "engines/sandbox",
     'checkHealth':  "maintenance",
+    'report': "analysis"
 }
 
 

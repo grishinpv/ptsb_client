@@ -15,10 +15,15 @@ class Response(object):
         self.data = bodyOject["data"]
         self.errors = [APIError(dict) for dict in bodyOject["errors"]]
     
-    def toJSON(self):
-        excludeProperty = ["data"]
+
+    def toJSON(self, excludeProperty = ["data"]):
         return json.dumps(self, default=lambda o: {key:value for key, value in o.__dict__.items() if key not in excludeProperty} , 
             sort_keys=True, indent=4)
+
+
+    def __str__(self):
+        return self.toJSON(excludeProperty = [])
+    
 
 
 class ResponseUploadScanFile(Response):
