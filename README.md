@@ -1,5 +1,5 @@
 # Positive Technologies Sandbox API Client
-Python-клиент PT Sandbox API версии 4.0 для отправки файлов на анализ
+Python-клиент PT Sandbox API версии <=4.6 для отправки файлов на анализ
 
 # Installation
 ##  Depends on
