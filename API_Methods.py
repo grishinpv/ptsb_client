@@ -5,9 +5,9 @@ SUPPORTED_API_METHODS = {
     'uploadScanFile': "storage",
     'createScanTask': "analysis",
     'checkTask': "analysis",
-    'downloadArtifact': "storage",
     'getImages': "engines/sandbox",
     'checkHealth':  "maintenance",
+    'downloadArtifact': "storage",
     'report': "analysis"
 }
 

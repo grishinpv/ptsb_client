@@ -35,7 +35,6 @@ class FileStatInfo(object):
             return "Null", "Null"
         return kind.extension, kind.mime
 
-
     def __updateScantime(self, new_scantime):
         if len(self.scans) > 1:
             self.file_scantime = (((self.file_scantime * (len(self.scans) - 1)) + new_scantime) / len(self.scans))
@@ -285,6 +284,20 @@ class Statistics(object):
         (data.extend([ k, len(g) ] for k, g in grouped.items()))
         headers = ["Verdict", "Count"]
         return {"headers": headers, "data": data}
+
+
+    #return available statisticsName
+    def StatAvailable(self):
+        return [
+            'UsageInfo_api',
+            'UsageInfo_summary',
+            'UsageInfo_ext',
+            'UsageInfo_mime',
+            'UsageInfo_files',
+            'UsageInfo_verdicts'
+        ]
+            
+            
     #endregion
 
     # ------------------------------------

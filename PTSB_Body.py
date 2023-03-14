@@ -1,6 +1,8 @@
 __author__ = "Pavel Grishin"
 
 import json
+import builtins
+
 from PTSB_Errors import *
 
 
@@ -23,7 +25,8 @@ class Options(object):
                  sandbox_analysis_duration):
         self.analysis_depth = analysis_depth
         self.passwords_for_unpack = passwords_for_unpack
-        self.sandbox = SandboxBody(sandbox_enabled,
+        if sandbox_enabled:
+            self.sandbox = SandboxBody(sandbox_enabled,
                                    sandbox_skip_check_mime_type, 
                                    sandbox_image_id,
                                    sandbox_analysis_duration)
@@ -32,6 +35,9 @@ class Options(object):
 class Body(object):
     def __init__(self):
         pass
+
+    def __str__(self):
+        return self.toJSON()
 
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, 
@@ -49,7 +55,8 @@ class ScanTaskBody(Body):
                 sandbox_enabled = True,
                 sandbox_skip_check_mime_type = False, 
                 sandbox_image_id = None,
-                sandbox_analysis_duration = 60):
+                sandbox_analysis_duration = 60,
+                **kwargs):
         super(ScanTaskBody, self).__init__()
         self.file_uri = file_uri
         self.file_name = file_name
@@ -61,16 +68,23 @@ class ScanTaskBody(Body):
                                    sandbox_skip_check_mime_type, 
                                    sandbox_image_id,
                                    sandbox_analysis_duration)
+        if builtins.DEBUG:
+            print(self)
 
 class ScanTaskBodyDefault(ScanTaskBody):
-    def __init__(self, file_uri, file_name, sandbox_image_id, short_result = False):
-        super(ScanTaskBodyDefault, self).__init__(file_uri, file_name, sandbox_image_id = sandbox_image_id, short_result = short_result)
+    def __init__(self, file_uri, file_name, sandbox_image_id, short_result = False, **kwargs): 
+        super(ScanTaskBodyDefault, self).__init__(file_uri, file_name, sandbox_image_id = sandbox_image_id, short_result = short_result, **kwargs) 
 
 class ScanTaskBodyAsyncDefault(ScanTaskBody):
-    def __init__(self, file_uri, file_name, sandbox_image_id, short_result = False):
-        super(ScanTaskBodyAsyncDefault, self).__init__(file_uri, file_name, sandbox_image_id = sandbox_image_id, async_result = True, short_result = short_result)
+    def __init__(self, file_uri, file_name, sandbox_image_id, short_result = False, **kwargs):
+        super(ScanTaskBodyAsyncDefault, self).__init__(file_uri, file_name, sandbox_image_id = sandbox_image_id, async_result = True, short_result = short_result, **kwargs)
 
 class CheckTaskBody(Body):
     def __init__(self, scan_id):
         super(CheckTaskBody, self).__init__()
         self.scan_id = scan_id
+
+class DownloadArtifactBody(Body):
+    def __init__(self, file_uri):
+        super(DownloadArtifactBody, self).__init__()
+        self.file_uri = file_uri

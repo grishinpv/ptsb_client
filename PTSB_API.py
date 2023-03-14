@@ -1,30 +1,31 @@
 __author__ = "Pavel Grishin"
-__version__ = "0.0.0.2"
+__version__ = "0.0.0.3"
 
 
 import re, socket, os
 import requests
+import builtins
 from tabulate import tabulate
+from functools import singledispatch
+
 from PTSB_Errors import *
 from PTSB_Response import *
 from PTSB_Body import *
 from PTSB_Statistics import *
 from API_Methods import *
 
-
-
+DEBUG = False
 
 class PTSBApi(object):
     BASE_API_PATH = "api/v1"
 
-    def __init__(self, api_key, sandbox_ip, proxy_srv='', proxy_port='', proxy_user=None, proxy_pwd=None, disable_cert_checking=True):
-        if not ((type(api_key) == str) and 
-            (re.match(r'^[0-9a-zA-Z]{24}_[0-9a-zA-Z]{18}_[0-9a-zA-Z]{14}_[0-9a-zA-Z]{5}_[0-9a-zA-Z]{14}-[0-9a-zA-Z]{6}$', api_key) or
-            re.match(r'^[0-9a-zA-Z]{31}[-|_][0-9a-zA-Z]{24}[-|_][0-9a-zA-Z]{16}[-|_][0-9a-zA-Z]{2}[-|_][0-9a-zA-Z]{9}$', api_key))):
-            raise ValueError("RequestFactory __init__ parameter 'api_key' must be a STRING with valid API key format")
+    def __init__(self, api_key, sandbox_ip, proxy_srv='', proxy_port='', proxy_user=None, proxy_pwd=None, disable_cert_checking=True, debug=False):
+        builtins.DEBUG = debug
+        if not ((type(api_key) == str) and (len(api_key) == 86)):
+            raise ValueError("PTSBApi __init__ parameter 'api_key' must be a STRING with valid API key format")
         if not ((type(sandbox_ip) == str) and ((self.__isValidIP(sandbox_ip)) or (self.__isValidHostname(
             sandbox_ip)))):
-            raise ValueError("RequestFactory __init__ parameter 'sandbox_ip' must be a STRING that contains a valid IP address or hostname.") 
+            raise ValueError("PTSBApi __init__ parameter 'sandbox_ip' must be a STRING that contains a valid IP address or hostname.") 
         
         self.api_key = api_key
         self.sandbox_ip = sandbox_ip
@@ -35,6 +36,7 @@ class PTSBApi(object):
             requests.packages.urllib3.disable_warnings() # To disable warning for Self-Signed Certificates
         if self.CheckHealth():
             self.images = self.GetImages()
+        
         
 
     def __getProxy(self, pserver, pport, puser = None, ppass = None):
@@ -126,12 +128,12 @@ class PTSBApi(object):
 
     def GetImages(self):
         apiname = 'getImages'
-        return self.__withStatisticsWrapper(apiname, ResponseGetImages(self.__send_request(apiname)))
+        return self.__withStatisticsWrapper(apiname, ResponseFactory("ResponseGetImages", (self.__send_request(apiname))))
 
 
     def CheckHealth(self):
         apiname = 'checkHealth'
-        return self.__withStatisticsWrapper(apiname, ResponseCheckHealth(self.__send_request(apiname)))
+        return self.__withStatisticsWrapper(apiname, ResponseFactory("ResponseCheckHealth", (self.__send_request(apiname))))
 
 
     def UploadScanFile(self, file_path):
@@ -141,7 +143,7 @@ class PTSBApi(object):
         headers['Content-Type'] = 'application/octet-stream'
 
         with open(file_path, 'rb') as f:
-            return self.__withStatisticsWrapper(apiname, ResponseUploadScanFile(self.__send_request(apiname, headers=headers, body=f.read())), {"file_path": file_path})
+            return self.__withStatisticsWrapper(apiname, ResponseFactory("ResponseUploadScanFile", (self.__send_request(apiname, headers=headers, body=f.read()))), {"file_path": file_path})
 
 
     def CreateScanTask(self, 
@@ -166,50 +168,83 @@ class PTSBApi(object):
                                 sandbox_skip_check_mime_type, 
                                 sandbox_image_id,
                                 sandbox_analysis_duration)
-        return self.__withStatisticsWrapper(apiname, ResponseCreateScanTask(self.__send_request(apiname, body=body.toJSON())), {"file_uri": file_uri})
+        return self.__withStatisticsWrapper(apiname, ResponseFactory("ResponseCreateScanTask",(self.__send_request(apiname, body=body.toJSON()))), {"file_uri": file_uri})
 
 
-    def CreateScanTaskSimple(self, file_uri, file_name, sandbox_image_id, short_result = False):
-        apiname = 'createScanTask' 
-        body = ScanTaskBodyDefault(file_uri, file_name, sandbox_image_id, short_result)
-        return self.__withStatisticsWrapper(apiname, ResponseCreateScanTask(self.__send_request(apiname, body=body.toJSON())), {"file_uri": file_uri})
+    def CreateScanTaskSimple(self, file_uri, file_name, sandbox_image_id, short_result =False, **kwargs):
+        apiname = 'createScanTask'
+        body = ScanTaskBodyDefault(file_uri, file_name, sandbox_image_id, short_result, **kwargs)
+        body_str = body.toJSON()
+        return self.__withStatisticsWrapper(apiname, ResponseFactory("ResponseCreateScanTask", (self.__send_request(apiname, body=body_str))), {"file_uri": file_uri})
     
 
-    def CreateScanTaskSimpleAsync(self, file_uri, file_name, sandbox_image_id, short_result = False):
+    def CreateScanTaskSimpleAsync(self, file_uri, file_name, sandbox_image_id, short_result = False, **kwargs):
         apiname = 'createScanTask' 
-        body = ScanTaskBodyAsyncDefault(file_uri, file_name, sandbox_image_id, short_result)
-        return self.__withStatisticsWrapper(apiname, ResponseCreateScanTask(self.__send_request(apiname, body=body.toJSON())), {"file_uri": file_uri})
+        body = ScanTaskBodyAsyncDefault(file_uri, file_name, sandbox_image_id, short_result, **kwargs)
+        body_str = body.toJSON()
+        return self.__withStatisticsWrapper(apiname, ResponseFactory("ResponseCreateScanTask", (self.__send_request(apiname, body=body_str))), {"file_uri": file_uri})
 
 
-    def CheckTask(self, scan_id):
+    def CheckTask(self, scan_id, **kwargs):
         apiname = 'checkTask' 
         body = CheckTaskBody(scan_id)
-        res = self.__withStatisticsWrapper(apiname, ResponseCheckTask(self.__send_request(apiname, body=body.toJSON())))
+        res = self.__withStatisticsWrapper(apiname, ResponseFactory("ResponseCheckTask", (self.__send_request(apiname, body=body.toJSON()))))
         
         return res
 
 
     def GetReport(self, scan_id):
         apiname = 'report'
+
+        if isinstance(scan_id, Response):
+            scan_id = scan_id.scan_id
         body = CheckTaskBody(scan_id)
-        res = self.__withStatisticsWrapper(apiname, ResponseCheckTask(self.__send_request(apiname, body=body.toJSON())))
+        res = self.__withStatisticsWrapper(apiname, ResponseFactory("ResponseCheckTask", (self.__send_request(apiname, body=body.toJSON()))))
         
         return res
-
-
-    def ScanFile(self, file_path, doAsync = True, image_id = None):
-        if image_id == None:
+      
+    
+    def ScanFile(self, file_path, doAsync = True, image_id = None, **kwargs):
+        if 'sandbox_enabled' in kwargs.keys() and kwargs['sandbox_enabled'] == True and image_id == None:
             image_id = self.images.images[0].image_id
+            print("image_id = " + image_id)
+        else:
+            kwargs['sandbox_enabled'] = False
 
         upload_res = self.UploadScanFile(file_path)
 
         if doAsync:
-            return self.CreateScanTaskSimpleAsync(upload_res.file_uri, os.path.basename(file_path), sandbox_image_id=image_id)
+            return self.CreateScanTaskSimpleAsync(upload_res.file_uri, os.path.basename(file_path), sandbox_image_id=image_id, **kwargs)
         
-        return self.CreateScanTaskSimple(upload_res.file_uri, os.path.basename(file_path), sandbox_image_id=image_id)
+        return self.CreateScanTaskSimple(upload_res.file_uri, os.path.basename(file_path), sandbox_image_id=image_id, **kwargs)
 
 
+    @singledispatch
+    def DownloadArtifact(self, uri: str):
+        apiname = 'downloadArtifact'
+        body = DownloadArtifactBody(uri)
+        body_str = body.toJSON()
+        return self.__withStatisticsWrapper(apiname, ResponseFactory("ResponseDownloadArtifact", (self.__send_request(apiname, body=body_str))))
+
+
+    @DownloadArtifact.register
+    def _(self, result: ResponseCreateScanTask):
+        return self.DownloadArtifact(result.data['artifacts'][0]['file_info']['file_uri'])
+
+
+    def GetStatisticsAvailable(self):
+        return self.statistics.StatAvailable()
+
+
+    def GetStatistics(self, stat_type):
+        if stat_type not in self.GetStatisticsAvailable():
+            raise NotImplementedError('Statisctics method "{0}" is not implemented'.format(stat_type))
+        return getattr(self.statistics, stat_type)()     
+            
+    
     def PrintStatistics(self, stat_type, addEmptyString = True):
+        if stat_type not in self.GetStatisticsAvailable():
+            raise NotImplementedError('Statisctics method "{0}" is not implemented'.format(stat_type))
         data = getattr(self.statistics, stat_type)()
         print(tabulate( data["data"], headers=data["headers"] ))
         if addEmptyString:
@@ -223,7 +258,7 @@ class PTSBApi(object):
         self.PrintStatistics("UsageInfo_mime")
         self.PrintStatistics("UsageInfo_files")
         self.PrintStatistics("UsageInfo_verdicts")
-
+        
 
     def __str__(self):
         return self.PrintStatisticsAll()

@@ -82,9 +82,6 @@ class EngineResult(object):
         self.detections = [Detection(detection) for detection in value["detections"]] if "detections" in value.keys() else None
         # details only exist for sandbox engine
         self.sandbox = Sandbox(value["details"]["sandbox"]) if "details" in value.keys() else None
-
-
-    
                  
 
 class Artifact(object):

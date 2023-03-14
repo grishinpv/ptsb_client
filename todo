@@ -1,2 +1,1 @@
->=4.1
-  Получение подробных результатов проверки <Корневой URL API>/analysis/report   DONE
+рефактор методов GetStatistics и PrintStatistics (дублирование методов с методами класса Statistics)

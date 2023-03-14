@@ -1,6 +1,7 @@
 __author__ = "Pavel Grishin"
 
-import requests, json, tempfile
+import requests, json, tempfile, os
+import builtins
 
 from PTSB_Errors import *
 from PTSB_Data import *
@@ -11,19 +12,17 @@ class Response(object):
         assert issubclass(r.__class__, requests.models.Response)
         self.status_code = r.status_code
         self.requestduration = r.elapsed.total_seconds()
-        bodyOject = json.loads(r.text)
-        self.data = bodyOject["data"]
-        self.errors = [APIError(dict) for dict in bodyOject["errors"]]
-    
-
-    def toJSON(self, excludeProperty = ["data"]):
-        return json.dumps(self, default=lambda o: {key:value for key, value in o.__dict__.items() if key not in excludeProperty} , 
-            sort_keys=True, indent=4)
-
+        if ('application/json' in r.headers.get('content-type')):
+            bodyOject = json.loads(r.text)
+            self.data = bodyOject["data"]
+            self.errors = [APIError(dict) for dict in bodyOject["errors"]]
 
     def __str__(self):
         return self.toJSON(excludeProperty = [])
     
+    def toJSON(self, excludeProperty = ["data"]):
+        return json.dumps(self, default=lambda o: {key:value for key, value in o.__dict__.items() if key not in excludeProperty} , 
+            sort_keys=True, indent=4)
 
 
 class ResponseUploadScanFile(Response):
@@ -64,17 +63,17 @@ class ResponseCheckTask(Response):
         return (False if self.result == None else True)
 
 
-class ResponseDownloadArtifact(object):
+class ResponseDownloadArtifact(Response):
     def __init__(self, r):
         super(ResponseDownloadArtifact, self).__init__(r)
-        tmp_file = tempfile.TemporaryFile()
-
+        tmp_file = os.path.join(tempfile._get_default_tempdir(), next(tempfile._get_candidate_names()))
+        #self.data = r
+        self.file_path = tmp_file
+        
         with open(tmp_file, 'wb') as f:
             for chunk in r.iter_content(chunk_size=1024):
                 if chunk:
                     f.write(chunk)
-
-        self.file_path = tmp_file
 
 
 class ResponseGetImages(Response):
@@ -93,3 +92,11 @@ class ResponseCheckHealth(Response):
     
     def isOnline(self):
         return (True if self.status.lower() == "ok" else False)
+
+
+def ResponseFactory(className, r):
+    instanse = globals()[className](r)
+    if builtins.DEBUG:
+        print(instanse)
+    
+    return instanse

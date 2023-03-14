@@ -1,2 +1,9 @@
+-= v0.3 =-
+* Improved __str__ method of some classes
+* ReponseFactory for simplification
+
+-= v0.2 =-
+* Add GetReport api method
+
 -= v0.1 =-
 * First release
