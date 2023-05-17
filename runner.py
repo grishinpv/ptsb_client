@@ -194,7 +194,7 @@ if __name__ == '__main__':
     print("┌─────────────────────────┬──────────┬──────────┐")
     print("│                         │ executed │   failed │")
     print("├─────────────────────────┼──────────┼──────────┤")
-    print("│                requests │{0} │{1} │".format(normalize_result(str(len(files*RepeatCount)), 9), normalize_result("n\a", 9)))
+    print("│                requests │{0} │{1} │".format(normalize_result(str(len(files*RepeatCount)), 9), normalize_result("n\\a", 9)))
     print("├─────────────────────────┴──────────┴──────────┤")
     #print("│ total run duration: {0} s │".format(normalize_result(total_time, 23)))
     #print("├───────────────────────────────────────────────┤")

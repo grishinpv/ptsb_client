@@ -17,7 +17,8 @@ for file in files_to_scan:
     file_upload_res = client.UploadScanFile(file)
 
     # task will be created immediatly
-    tasks.append(client.CreateScanTaskSimpleAsync(file_upload_res.file_uri, os.path.basename(file), sandbox_image_id=client.images.images[0].image_id))
+    # scan within sandbox
+    tasks.append(client.CreateScanTaskSimpleAsync(file_upload_res.file_uri, os.path.basename(file), sandbox_enabled=True, sandbox_image_id=client.images.images[0].image_id))
     
 # wait for the result or skip the step and do smth else
 while not all(result == True for result in [task.isFinished(client) for task in tasks]):

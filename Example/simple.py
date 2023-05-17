@@ -10,10 +10,11 @@ files_to_scan = [f.path for f in os.scandir(folder) if f.is_file()]
 tasks = []      # contains either task or result
 
 doAsync = True # True = выполнить проверки асинхронно, False = выполнить проверки синхронно
+sandbox_enabled = True # True = провести поведенческий анализ, False = провести только сканирование антивирусом
 
 for file in files_to_scan:
     
-    tasks.append(client.ScanFile(file, doAsync=doAsync))
+    tasks.append(client.ScanFile(file, doAsync=doAsync, sandbox_enabled=sandbox_enabled))
 
 # if Async wait for the result or skip the step and do smth else
 if doAsync:

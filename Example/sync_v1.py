@@ -16,8 +16,9 @@ tasks = []      # contains all task objects
 for file in files_to_scan:
     file_upload_res = client.UploadScanFile(file)
 
-    # wait each task completed
-    res = client.CreateScanTaskSimple(file_upload_res.file_uri, os.path.basename(file), sandbox_image_id=client.images.images[0].image_id)
+    # wait each task completed 
+    # scan within sandbox
+    res = client.CreateScanTaskSimple(file_upload_res.file_uri, os.path.basename(file), sandbox_enabled=True, sandbox_image_id=client.images.images[0].image_id)
     #print(res.toJSON())       # print result body
 
 # print statistics
