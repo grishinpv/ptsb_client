@@ -1,5 +1,20 @@
 # Positive Technologies Sandbox API Client
-Python-клиент PT Sandbox API версии <=4.6 для отправки файлов на анализ
+Python-клиент PT Sandbox API для отправки файлов на анализ<br>Клиент позволяет отправлять файловые объекты на проверку с проверкой поведенческого анализа, так и без него.
+
+# Features
+### Возможности клмента
+- синхронная\асинхронная отправка файлов на анализ
+- проверка с поведенческим анализом или без него
+- получение расширенного отчета по результатам проверки
+- статистика по использованию методов API
+- статистика по отправленным файлам
+- поддержка работы через прокси с аутентификацией
+
+### Возможности нагрузочного скрипта
+- многопоточная отправка файлов
+- задание интервалов между отправками файлов
+
+![Результат нагрузочного скрипта](/Example/result_example.png)
 
 # Installation
 ##  Depends on
@@ -21,7 +36,7 @@ pip install -r requirements.txt
 ```
 from PTSB_API import *
 ```
-### Создание объекта клиента
+### Создание экземпляра клиента
 ```
 # работа без прокси
 client = PTSBApi(api_key, ip)
@@ -31,21 +46,32 @@ client = PTSBApi(api_key, ip, proxy_srv, proxy_port)
 
 # работа через прокси c аутентификацией
 client = PTSBApi(api_key, ip, proxy_srv, proxy_port, proxy_user, proxy_pwd)
+
+# работа клиента в режиме отладки (вывод отладочной информации на консоль)
+client = PTSBApi(api_key, ip, debug=True)
+
 ```
 ### Простое сканирование в PT SB (загрузка + сканирование в одно действие)
 ```
-# синхронная проверка
+# синхронная проверка без поведенческого анализа
 result = client.ScanFile(file_path, doAsync=False)
 
-# асинхронная проверка
-task = client.ScanFile(file_path)
+# синхронная проверка с поведенческим анализом
+result = client.ScanFile(file_path, doAsync=False, sandbox_enabled=True)
+
+# асинхронная проверка c поведенческим анализом
+task = client.ScanFile(file_path, sandbox_enabled=True)
 while not task.isFinished(client):
     time.sleep(30)
+
+# получение отчета по результатам сканирования
+print(client.GetReport(task))
 ```
 ### Получение рерузльтирующего объекта (любой объект базового класса Response) в виде JSON
 ```
 client.ScanFile(file_path, doAsync=doAsync).toJSON()
 ```
+
 
 # Statistics
 ## UsageInfo_api
@@ -129,14 +155,15 @@ CLEAN            8
 *  ```client.CreateScanTaskSimple```
 *  ```client.CreateScanTaskSimpleAsynс```
 
-## Асинхронная проверка [:link:](Example/async_v1.py)
+## Асинхронная проверка [(ссылка)](Example/async_v1.py)<br>
+
 При создании задачи на анализ файла через ```сlient.CreateScanTask``` анализ файла выполняется асинхронно, т.е. сразу возвращается объект класса ```ResponseCreateScanTask()```.
 Запросить результат выполнения задачи можно одним из вариантов:
 * вызвать ```client.CheckTask(scan_id):```, где ```scan_id``` является атрибутом ранее полученного ```ResponseCreateScanTask()```
 * вызвать метод ранее полученного объекта класса для таска ```ResponseCreateScanTask.isFinished()```
 
-## Синхронная проверка [:link:](Example/sync_v1.py)
+## Синхронная проверка [(ссылка)](Example/sync_v1.py)
 При создании задачи на анализ файла через ```сlient.CreateScanTask```, API ожидает полного завершения анализа и в качестве ответа возвращает полный результат анализа
 
-## Упрощенная проверка [:link:](Example/simple.py)
+## Упрощенная проверка [(ссылка)](Example/simple.py)
 Клиент реализует упрощенный метод сканирования (объединяющий ```client.UploadScanFile()``` и ```сlient.CreateScanTask()```) в одном вызове ```client.ScanFile(file, doAsync)```
